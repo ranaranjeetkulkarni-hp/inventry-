@@ -1,0 +1,48 @@
+# ---------------------------------------------------------------
+# Hybrid Inventory Manager – Makefile
+# C sources compile as C; C++ sources compile as C++.
+# ---------------------------------------------------------------
+
+CC      := gcc
+CXX     := g++
+CFLAGS  := -Wall -Wextra -std=c11   -Iinclude
+CXXFLAGS:= -Wall -Wextra -std=c++17 -Iinclude
+LDFLAGS :=
+
+TARGET  := inventory
+OBJDIR  := build
+
+C_SRCS   := src/inventory.c
+CPP_SRCS := src/main.cpp
+
+C_OBJS   := $(patsubst src/%.c,   $(OBJDIR)/%.o, $(C_SRCS))
+CPP_OBJS := $(patsubst src/%.cpp, $(OBJDIR)/%.o, $(CPP_SRCS))
+ALL_OBJS := $(C_OBJS) $(CPP_OBJS)
+
+# ---------------------------------------------------------------
+.PHONY: all clean run
+
+all: $(OBJDIR) $(TARGET)
+
+$(OBJDIR):
+	mkdir -p $(OBJDIR)
+
+# Link with g++ so C++ runtime is pulled in automatically
+$(TARGET): $(ALL_OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^
+	@echo "  ✔  Built: $(TARGET)"
+
+# C translation units
+$(OBJDIR)/%.o: src/%.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# C++ translation units
+$(OBJDIR)/%.o: src/%.cpp | $(OBJDIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+run: all
+	./$(TARGET)
+
+clean:
+	rm -rf $(OBJDIR) $(TARGET) inventory.dat
+	@echo "  ✔  Cleaned."
